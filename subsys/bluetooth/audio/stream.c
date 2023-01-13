@@ -22,6 +22,7 @@
 #include "../host/iso_internal.h"
 
 #include "audio_iso.h"
+#include "audio_internal.h"
 #include "endpoint.h"
 #include "unicast_client_internal.h"
 #include "unicast_server.h"
@@ -727,18 +728,6 @@ int bt_audio_stream_connect(struct bt_audio_stream *stream)
 	}
 }
 
-static bool unicast_group_valid_qos(const struct bt_codec_qos *group_qos,
-				    const struct bt_codec_qos *stream_qos)
-{
-	if (group_qos->framing != stream_qos->framing ||
-	    group_qos->interval != stream_qos->interval ||
-	    group_qos->latency != stream_qos->latency) {
-		return false;
-	}
-
-	return true;
-}
-
 static struct bt_audio_iso *get_new_iso(struct bt_audio_unicast_group *group,
 					struct bt_conn *acl,
 					enum bt_audio_dir dir)
@@ -872,7 +861,8 @@ static int unicast_group_add_stream(struct bt_audio_unicast_group *group,
 	__ASSERT_NO_MSG(stream->ep == NULL ||
 			(stream->ep != NULL && stream->ep->iso == NULL));
 
-	LOG_DBG("group %p stream %p dir %u", group, stream, dir);
+	LOG_DBG("group %p stream %p dir %s",
+		group, stream, bt_audio_dir_str(dir));
 
 	iso = get_new_iso(group, stream->conn, dir);
 	if (iso == NULL) {
@@ -1018,10 +1008,6 @@ int bt_audio_unicast_group_create(struct bt_audio_unicast_group_param *param,
 
 		if (group_qos == NULL) {
 			group_qos = stream_param->qos;
-		} else if (!unicast_group_valid_qos(group_qos,
-						    stream_param->qos)) {
-			LOG_DBG("Stream[%zu] QoS incompatible with group QoS", i);
-			return -EINVAL;
 		}
 
 		CHECKIF(!bt_audio_valid_qos(stream_param->qos)) {
@@ -1107,9 +1093,6 @@ int bt_audio_unicast_group_add_streams(struct bt_audio_unicast_group *unicast_gr
 
 		if (group_qos == NULL) {
 			group_qos = params[i].qos;
-		} else if (!unicast_group_valid_qos(group_qos, params[i].qos)) {
-			LOG_DBG("Stream[%zu] QoS incompatible with group QoS", i);
-			return -EINVAL;
 		}
 	}
 

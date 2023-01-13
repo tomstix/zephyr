@@ -83,6 +83,9 @@ Removed APIs in this release
 
 * Removed :kconfig:option:`CONFIG_COUNTER_RTC_STM32_BACKUP_DOMAIN_RESET`
 
+* Removed deprecated tinycbor module, code that uses this module should be
+  updated to use zcbor as a replacement.
+
 Deprecated in this release
 ==========================
 
@@ -128,6 +131,11 @@ Deprecated in this release
      +---------------------------------------------+---------------------------------------+
 
   NOTE: Only functions are marked as ``__deprecated``, type definitions are not.
+
+* STM32 Ethernet Mac address Kconfig related symbols (:kconfig:option:`CONFIG_ETH_STM32_HAL_RANDOM_MAC`,
+  :kconfig:option:`CONFIG_ETH_STM32_HAL_MAC4`, ...) have been deprecated in favor
+  of the use of zephyr generic device tree ``local-mac-address`` and ``zephyr,random-mac-address``
+  properties.
 
 * STM32 RTC source clock should now be configured using devicetree.
   Related Kconfig :kconfig:option:`CONFIG_COUNTER_RTC_STM32_CLOCK_LSI` and
@@ -283,6 +291,9 @@ Drivers and Sensors
 
 * DFU
 
+  * Remove :c:macro:`BOOT_TRAILER_IMG_STATUS_OFFS` in favor a two new functions;
+    :c:func:`boot_get_area_trailer_status_offset` and :c:func:`boot_get_trailer_status_offset`
+
 * Disk
 
 * Display
@@ -296,6 +307,11 @@ Drivers and Sensors
 * ESPI
 
 * Ethernet
+
+  * STM32: Default Mac address configuration is now uid based. Optionally, user can
+    configure it to be random or provide its own address using device tree.
+
+* Flash
 
   * Flash: Moved CONFIG_FLASH_FLEXSPI_XIP into the SOC level due to the flexspi clock initialization occurring in the SOC level.
 
@@ -392,6 +408,8 @@ Devicetree
     * STM32 SoCs:
 
       * :dtcompatible: `st,stm32-lse-clock`: new ``lse-bypass`` property
+      * :dtcompatible: `st,stm32-ethernet`: now allows ``local-mac-address`` and
+         ``zephyr,random-mac-address`` properties.
 
 Libraries / Subsystems
 **********************
@@ -524,6 +542,8 @@ Libraries / Subsystems
        +------------------------------------------------+-------------------------------------------------------+
        | FS_MGMT_HASH_SHA256                            | MCUMGR_GRP_FS_HASH_SHA256                             |
        +------------------------------------------------+-------------------------------------------------------+
+       | FS_MGMT_FILE_ACCESS_HOOK                       | MCUMGR_GRP_FS_FILE_ACCESS_HOOK                        |
+       +------------------------------------------------+-------------------------------------------------------+
        | FS_MGMT_PATH_SIZE                              | MCUMGR_GRP_FS_PATH_LEN                                |
        +------------------------------------------------+-------------------------------------------------------+
        | MCUMGR_CMD_IMG_MGMT                            | MCUMGR_GRP_IMG                                        |
@@ -543,6 +563,8 @@ Libraries / Subsystems
        | IMG_MGMT_FRUGAL_LIST                           | MCUMGR_GRP_IMG_FRUGAL_LIST                            |
        +------------------------------------------------+-------------------------------------------------------+
        | MCUMGR_CMD_OS_MGMT                             | MCUMGR_GRP_OS                                         |
+       +------------------------------------------------+-------------------------------------------------------+
+       | MCUMGR_GRP_OS_OS_RESET_HOOK                    | MCUMGR_GRP_OS_RESET_HOOK                              |
        +------------------------------------------------+-------------------------------------------------------+
        | OS_MGMT_RESET_MS                               | MCUMGR_GRP_OS_RESET_MS                                |
        +------------------------------------------------+-------------------------------------------------------+
@@ -587,6 +609,8 @@ Libraries / Subsystems
        | MCUMGR_SMP_BT                                  | MCUMGR_TRANSPORT_BT                                   |
        +------------------------------------------------+-------------------------------------------------------+
        | MCUMGR_SMP_REASSEMBLY_BT                       | MCUMGR_TRANSPORT_BT_REASSEMBLY                        |
+       +------------------------------------------------+-------------------------------------------------------+
+       | MCUMGR_SMP_REASSEMBLY_UNIT_TESTS               | MCUMGR_TRANSPORT_REASSEMBLY_UNIT_TESTS                |
        +------------------------------------------------+-------------------------------------------------------+
        | MCUMGR_SMP_BT_AUTHEN                           | MCUMGR_TRANSPORT_BT_AUTHEN                            |
        +------------------------------------------------+-------------------------------------------------------+

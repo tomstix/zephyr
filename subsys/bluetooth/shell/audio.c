@@ -45,8 +45,12 @@ static const struct bt_codec_qos_pref qos_pref = BT_CODEC_QOS_PREF(true, BT_GAP_
 #if defined(CONFIG_BT_AUDIO_UNICAST_CLIENT)
 static struct bt_audio_unicast_group *default_unicast_group;
 static struct bt_codec *rcodecs[2][CONFIG_BT_AUDIO_UNICAST_CLIENT_PAC_COUNT];
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 static struct bt_audio_ep *snks[CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT];
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
 static struct bt_audio_ep *srcs[CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT];
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
 #endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT */
 #endif /* CONFIG_BT_AUDIO_UNICAST */
 
@@ -760,17 +764,21 @@ static int handle_metadata_update(const char *meta_str,
 #if defined(CONFIG_BT_AUDIO_UNICAST_CLIENT)
 static uint8_t stream_dir(const struct bt_audio_stream *stream)
 {
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 	for (size_t i = 0; i < ARRAY_SIZE(snks); i++) {
 		if (snks[i] != NULL && stream->ep == snks[i]) {
 			return BT_AUDIO_DIR_SINK;
 		}
 	}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
 
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
 	for (size_t i = 0; i < ARRAY_SIZE(srcs); i++) {
 		if (srcs[i] != NULL && stream->ep == srcs[i]) {
 			return BT_AUDIO_DIR_SOURCE;
 		}
 	}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
 
 	__ASSERT(false, "Invalid stream");
 	return 0;
@@ -791,19 +799,23 @@ static void add_codec(struct bt_codec *codec, uint8_t index, enum bt_audio_dir d
 	}
 }
 
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 static void add_sink(struct bt_audio_ep *ep, uint8_t index)
 {
 	shell_print(ctx_shell, "Sink #%u: ep %p", index, ep);
 
 	snks[index] = ep;
 }
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
 
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
 static void add_source(struct bt_audio_ep *ep, uint8_t index)
 {
 	shell_print(ctx_shell, "Source #%u: ep %p", index, ep);
 
 	srcs[index] = ep;
 }
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
 
 static void discover_cb(struct bt_conn *conn, struct bt_codec *codec,
 			struct bt_audio_ep *ep,
@@ -815,11 +827,17 @@ static void discover_cb(struct bt_conn *conn, struct bt_codec *codec,
 	}
 
 	if (ep) {
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 		if (params->dir == BT_AUDIO_DIR_SINK) {
 			add_sink(ep, params->num_eps);
-		} else if (params->dir == BT_AUDIO_DIR_SOURCE) {
+		}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
+
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
+		if (params->dir == BT_AUDIO_DIR_SOURCE) {
 			add_source(ep, params->num_eps);
 		}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0*/
 
 		return;
 	}
@@ -839,11 +857,17 @@ static void discover_all(struct bt_conn *conn, struct bt_codec *codec,
 	}
 
 	if (ep) {
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 		if (params->dir == BT_AUDIO_DIR_SINK) {
 			add_sink(ep, params->num_eps);
-		} else if (params->dir == BT_AUDIO_DIR_SOURCE) {
+		}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
+
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
+		if (params->dir == BT_AUDIO_DIR_SOURCE) {
 			add_source(ep, params->num_eps);
 		}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0*/
 
 		return;
 	}
@@ -948,12 +972,20 @@ static int cmd_config(const struct shell *sh, size_t argc, char *argv[])
 		return -ENOEXEC;
 	}
 
-	if (!strcmp(argv[1], "sink")) {
+	if (false) {
+
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
+	} else if (!strcmp(argv[1], "sink")) {
 		dir = BT_AUDIO_DIR_SINK;
 		ep = snks[index];
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
+
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
 	} else if (!strcmp(argv[1], "source")) {
 		dir = BT_AUDIO_DIR_SOURCE;
 		ep = srcs[index];
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
+
 	} else {
 		shell_error(sh, "Unsupported dir: %s", argv[1]);
 		return -ENOEXEC;
@@ -1224,6 +1256,7 @@ static int cmd_list(const struct shell *sh, size_t argc, char *argv[])
 	}
 
 #if defined(CONFIG_BT_AUDIO_UNICAST_CLIENT)
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0
 	shell_print(sh, "Sinks:");
 
 	for (i = 0; i < ARRAY_SIZE(snks); i++) {
@@ -1233,7 +1266,9 @@ static int cmd_list(const struct shell *sh, size_t argc, char *argv[])
 			shell_print(sh, "  #%u: ep %p", i, ep);
 		}
 	}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SNK_COUNT > 0 */
 
+#if CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0
 	shell_print(sh, "Sources:");
 
 	for (i = 0; i < ARRAY_SIZE(srcs); i++) {
@@ -1243,6 +1278,7 @@ static int cmd_list(const struct shell *sh, size_t argc, char *argv[])
 			shell_print(sh, "  #%u: ep %p", i, ep);
 		}
 	}
+#endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
 #endif /* CONFIG_BT_AUDIO_UNICAST_CLIENT */
 
 	return 0;
@@ -1534,7 +1570,7 @@ static int cmd_create_broadcast(const struct shell *sh, size_t argc,
 	struct bt_audio_broadcast_source_stream_param
 		stream_params[ARRAY_SIZE(broadcast_source_streams)];
 	struct bt_audio_broadcast_source_subgroup_param subgroup_param;
-	struct bt_audio_broadcast_source_create_param create_param;
+	struct bt_audio_broadcast_source_create_param create_param = { 0 };
 	struct named_lc3_preset *named_preset;
 	int err;
 
@@ -1545,12 +1581,51 @@ static int cmd_create_broadcast(const struct shell *sh, size_t argc,
 
 	named_preset = default_preset;
 
-	if (argc > 1) {
-		named_preset = set_preset(false, 1, &argv[1]);
-		if (named_preset == NULL) {
-			shell_error(sh, "Unable to parse named_preset %s",
-				    argv[1]);
-			return -ENOEXEC;
+	for (size_t i = 1U; i < argc; i++) {
+		char *arg = argv[i];
+
+		if (strcmp(arg, "enc") == 0) {
+			if (argc > i) {
+				size_t bcode_len;
+
+				i++;
+				arg = argv[i];
+
+				bcode_len = hex2bin(arg, strlen(arg),
+						    create_param.broadcast_code,
+						    sizeof(create_param.broadcast_code));
+
+				if (bcode_len != sizeof(create_param.broadcast_code)) {
+					shell_error(sh, "Invalid Broadcast Code Length: %zu",
+						    bcode_len);
+
+					return -ENOEXEC;
+				}
+
+				create_param.encryption = true;
+			} else {
+				shell_help(sh);
+
+				return SHELL_CMD_HELP_PRINTED;
+			}
+		} else if (strcmp(arg, "preset") == 0) {
+			if (argc > i) {
+
+				i++;
+				arg = argv[i];
+
+				named_preset = set_preset(false, 1, &arg);
+				if (named_preset == NULL) {
+					shell_error(sh, "Unable to parse named_preset %s",
+						    arg);
+
+					return -ENOEXEC;
+				}
+			} else {
+				shell_help(sh);
+
+				return SHELL_CMD_HELP_PRINTED;
+			}
 		}
 	}
 
@@ -1955,7 +2030,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(audio_cmds,
 #if defined(CONFIG_BT_AUDIO_BROADCAST_SOURCE)
 	SHELL_CMD_ARG(select_broadcast, NULL, "<stream>",
 		      cmd_select_broadcast_source, 2, 0),
-	SHELL_CMD_ARG(create_broadcast, NULL, "[codec] [preset]",
+	SHELL_CMD_ARG(create_broadcast, NULL,
+		      "[preset <preset_name>] [enc <broadcast_code>]",
 		      cmd_create_broadcast, 1, 2),
 	SHELL_CMD_ARG(start_broadcast, NULL, "", cmd_start_broadcast, 1, 0),
 	SHELL_CMD_ARG(stop_broadcast, NULL, "", cmd_stop_broadcast, 1, 0),
